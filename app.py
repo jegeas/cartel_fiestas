@@ -27,7 +27,6 @@ from poster_generator import (
     list_all_projects,
     OUTPUTS_DIR
 )
-from styles import STYLES_CATALOG, get_style_names, get_style_info
 
 # Cargar variables de entorno si existe .env
 load_dotenv()
@@ -245,7 +244,7 @@ with st.sidebar:
 # CABECERA PRINCIPAL
 # ==========================================
 st.markdown('<div class="main-header">AI Poster Studio</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-header">Crea carteles publicitarios y artísticos con la API de OpenAI. Sube fotos de referencia, selecciona tu estilo e itera añadiendo elementos a tus versiones.</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-header">Crea carteles publicitarios y artísticos con la API de OpenAI. Sube fotos de referencia, define tu prompt y estilo libremente, e itera añadiendo elementos a tus versiones.</div>', unsafe_allow_html=True)
 
 # TABS PRINCIPALES
 tab_crear, tab_editar, tab_historial = st.tabs([
@@ -274,34 +273,12 @@ with tab_crear:
         if base_image_file:
             st.image(base_image_file, caption="Foto de referencia base subida", use_container_width=True)
 
-        # 2. Estilo Artístico
-        st.markdown("**2. Estilo Artístico del Cartel**")
-        style_names = get_style_names()
-        selected_style = st.selectbox("Elige el estilo visual:", options=style_names, index=0)
-        style_info = get_style_info(selected_style)
-
-        if selected_style == "Personalizado":
-            custom_style_directives = st.text_area(
-                "Describe las características de tu estilo personalizado:",
-                placeholder="Ejemplo: Estilo cómic francés de los 80, paleta pastel retro, trazos de línea clara (Ligne Claire)...",
-                height=90
-            )
-            style_directives_to_use = custom_style_directives
-        else:
-            style_directives_to_use = style_info["prompt_directives"]
-            st.markdown(f"""
-            <div class="info-box">
-                <b>{style_info['icon']} {selected_style}</b> ({style_info['category']})<br>
-                {style_info['description']}
-            </div>
-            """, unsafe_allow_html=True)
-
-        # 3. Prompt del Autor
-        st.markdown("**3. Prompt / Descripción del Cartel**")
+        # 2. Prompt del Autor (incluye tema, estilo artístico, textos, etc.)
+        st.markdown("**2. Prompt / Descripción del Cartel (Tema, Estilo Artístico y Textos)**")
         user_prompt_text = st.text_area(
-            "Indica el tema, textos deseados, eslogan o mensaje del cartel:",
-            placeholder="Ejemplo: Cartel anunciador de un festival de música electrónica 'NEON FOREST 2026'. En el centro un DJ con casco iluminado rodeado de árboles bioluminiscentes y esporas brillantes. Incluir el texto 'NEON FOREST' en tipografía audaz arriba.",
-            height=130
+            "Describe cómo quieres el cartel (estilo artístico, colores, tema, textos o eslogan y detalles):",
+            placeholder="Ejemplo: Cartel anunciador de las fiestas patronales de San Juan 2026 en estilo Art Déco elegante y geométrico. En el centro una hoguera estilizada con adornos dorados sobre fondo azul noche, con el texto 'FIESTAS DE SAN JUAN 2026' en tipografía de los años 20...",
+            height=160
         )
 
         generate_btn = st.button("🚀 Generar Cartel", type="primary", use_container_width=True)
@@ -325,8 +302,6 @@ with tab_crear:
                         engineered_prompt = create_initial_poster_prompt(
                             client=client,
                             user_prompt=user_prompt_text,
-                            style_name=selected_style,
-                            style_directives=style_directives_to_use,
                             image_input=base_image_file,
                             model=vision_model
                         )
@@ -346,7 +321,6 @@ with tab_crear:
                         project_id=st.session_state.project_id,
                         iteration=iteration_num,
                         image_bytes=img_bytes,
-                        style_name=selected_style,
                         original_prompt=user_prompt_text,
                         ai_prompt=engineered_prompt,
                         revised_prompt=revised_prompt,
@@ -416,16 +390,6 @@ with tab_editar:
                 use_container_width=True
             )
 
-            # Estilo actual detectado
-            cur_style = st.session_state.current_poster_meta.get("style_name", "Bauhaus & Modernismo") if st.session_state.current_poster_meta else "Bauhaus & Modernismo"
-            cur_style_info = get_style_info(cur_style)
-            st.markdown(f"""
-            <div class="info-box">
-                <b>Estilo heredado:</b> {cur_style}<br>
-                <small>{cur_style_info.get('description', '')}</small>
-            </div>
-            """, unsafe_allow_html=True)
-
         with col_ed_right:
             st.markdown("**1. Sube 1 o varias fotos de referencia de los elementos a sumar:**")
             ref_photos = st.file_uploader(
@@ -469,8 +433,6 @@ with tab_editar:
                                 current_poster_image=st.session_state.current_poster_bytes,
                                 edit_instructions=edit_instructions_text,
                                 reference_images_list=ref_photos or [],
-                                original_style_name=cur_style,
-                                original_style_directives=cur_style_info.get("prompt_directives", ""),
                                 model=vision_model
                             )
 
@@ -488,7 +450,6 @@ with tab_editar:
                             project_id=st.session_state.project_id,
                             iteration=next_iter,
                             image_bytes=new_bytes,
-                            style_name=cur_style,
                             original_prompt=edit_instructions_text,
                             ai_prompt=iter_prompt,
                             revised_prompt=new_revised,
@@ -540,8 +501,7 @@ with tab_historial:
                 st.markdown(f"""
                 <div class="version-card">
                     <h4>Versión {v['iteration']} • <small>{v['date_readable']}</small></h4>
-                    <span class="badge-style">{v.get('style_name', 'Estilo')}</span>
-                    <p><b>Instrucciones / Prompt:</b> {v.get('user_prompt', 'N/A')}</p>
+                    <p><b>Prompt / Instrucciones del autor:</b> {v.get('user_prompt', 'N/A')}</p>
                 </div>
                 """, unsafe_allow_html=True)
 

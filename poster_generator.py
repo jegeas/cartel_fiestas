@@ -65,35 +65,32 @@ def process_image_to_base64(image_input, max_size: int = 1600) -> Tuple[str, str
 def create_initial_poster_prompt(
     client: OpenAI,
     user_prompt: str,
-    style_name: str,
-    style_directives: str,
     image_input=None,
     model: str = "gpt-4o"
 ) -> str:
     """
-    Usa GPT-4o Visión como Director de Arte para analizar la foto base (si existe),
-    el estilo artístico seleccionado y las intenciones del usuario para crear
-    un prompt maestro altamente descriptivo para DALL-E 3.
+    Usa GPT-4o Visión como Director de Arte para analizar la foto base (si existe)
+    y el prompt del usuario (donde define la temática, el estilo artístico deseado y los textos)
+    para crear un prompt maestro altamente descriptivo para el generador de imágenes.
     """
     system_instruction = (
         "Eres un galardonado Director de Arte y Diseñador Gráfico de cartelería publicitaria y artística. "
         "Tu misión es redactar un prompt en inglés hiperdetallado, visualmente impactante y profesional "
-        "para el generador de imágenes DALL-E 3.\n\n"
+        "para el generador de imágenes.\n\n"
         "Reglas clave:\n"
-        "1. Si se te proporciona una imagen de referencia, analiza minuciosamente su sujeto principal, "
-        "composición, paleta y esencia, para reinterpretarla fielmente dentro del estilo artístico pedido.\n"
-        "2. Aplica con maestría las directrices del estilo artístico solicitado (texturas, geometría, luz, tipografía).\n"
+        "1. Analiza minuciosamente el prompt del autor: extrae el estilo artístico definido por el autor, "
+        "la paleta de colores, la atmósfera, la composición, la tipografía y los textos deseados.\n"
+        "2. Si se te proporciona una imagen de referencia, analiza su sujeto principal, "
+        "composición y esencia, para reinterpretarla fielmente dentro del estilo artístico pedido por el autor.\n"
         "3. Estructura el cartel con jerarquía visual de póster: punto focal principal, fondo con textura de soporte, "
-        "sensación de póster de alta gama.\n"
-        "4. Devuelve ÚNICAMENTE el texto final del prompt para DALL-E 3 (en inglés), sin introducciones, saludos ni comillas."
+        "composición equilibrada y calidad visual publicitaria.\n"
+        "4. Devuelve ÚNICAMENTE el texto final del prompt para el generador de imágenes (en inglés), sin introducciones, saludos ni comillas."
     )
 
     user_content: List[Dict[str, Any]] = []
 
     text_content = (
-        f"ESTILO ARTÍSTICO REQUERIDO: {style_name}\n"
-        f"DIRECTIVAS DEL ESTILO: {style_directives}\n\n"
-        f"DESCRIPCIÓN Y DESEOS DEL AUTOR:\n{user_prompt}\n\n"
+        f"INSTRUCCIONES, TEMÁTICA Y ESTILO DEFINIDOS POR EL AUTOR:\n{user_prompt}\n\n"
     )
 
     if image_input is not None:
@@ -101,7 +98,7 @@ def create_initial_poster_prompt(
             data_url, _ = process_image_to_base64(image_input)
             text_content += (
                 "Se adjunta la imagen base que el usuario quiere plasmar en el cartel. "
-                "Examina la imagen y sintetiza su sujeto y esencia combinándolos armónicamente con el estilo elegido."
+                "Examina la imagen y sintetiza su sujeto y esencia combinándolos armónicamente con el estilo y tema pedidos por el autor."
             )
             user_content.append({"type": "text", "text": text_content})
             user_content.append({
@@ -112,7 +109,7 @@ def create_initial_poster_prompt(
             text_content += f"(Nota: No se pudo procesar la imagen adjunta debido a: {e})"
             user_content.append({"type": "text", "text": text_content})
     else:
-        text_content += "No se adjuntó imagen de referencia; crea el cartel desde cero basado en la descripción."
+        text_content += "No se adjuntó imagen de referencia; crea el cartel desde cero basado en la descripción y estilo del autor."
         user_content.append({"type": "text", "text": text_content})
 
     response = client.chat.completions.create(
@@ -134,14 +131,12 @@ def create_iteration_poster_prompt(
     current_poster_image,
     edit_instructions: str,
     reference_images_list: List[Any],
-    original_style_name: str,
-    original_style_directives: str,
     model: str = "gpt-4o"
 ) -> str:
     """
     Toma el cartel actual generado + una o varias fotos de referencia + instrucciones
-    del usuario para redactar el nuevo prompt de DALL-E 3 que integra los nuevos elementos
-    preservando la coherencia y el estilo.
+    del usuario para redactar el nuevo prompt que integra los nuevos elementos
+    preservando la coherencia visual y el estilo del cartel original.
     """
     system_instruction = (
         "Eres un Director de Arte experto en edición, remezcla y composición visual de carteles. "
@@ -149,21 +144,19 @@ def create_iteration_poster_prompt(
         "El usuario te proporciona:\n"
         "1. La imagen del cartel actual.\n"
         "2. Una o más imágenes de referencia con los nuevos elementos, personajes, objetos o motivos a incorporar.\n"
-        "3. Las instrucciones precisas de lo que desea cambiar, sumar o reorganizar.\n\n"
+        "3. Las instrucciones precisas del autor de lo que desea cambiar, sumar, adaptar o reorganizar.\n\n"
         "Tu tarea:\n"
         "- Analizar el cartel original: mantener su paleta de color, estilo gráfico, iluminación y atmósfera general.\n"
         "- Analizar cada una de las nuevas fotos de referencia y extraer exactamente los elementos que el autor pide sumar.\n"
-        "- Describir cómo se integran esos nuevos elementos orgánicamente en el cartel existente como si siempre hubiesen estado ahí.\n"
-        "- Redactar el prompt final para DALL-E 3 (en inglés) que recree esta nueva versión completa del cartel con los añadidos.\n"
-        "- Devuelve ÚNICAMENTE el texto final del prompt para DALL-E 3 (en inglés), sin saludos ni explicaciones."
+        "- Describir cómo se integran esos nuevos elementos orgánicamente en el cartel existente respetando su estética.\n"
+        "- Redactar el prompt final (en inglés) que recree esta nueva versión completa del cartel con los añadidos.\n"
+        "- Devuelve ÚNICAMENTE el texto final del prompt (en inglés), sin saludos ni explicaciones."
     )
 
     user_content: List[Dict[str, Any]] = []
 
     text_content = (
-        f"ESTILO ARTÍSTICO BASE: {original_style_name}\n"
-        f"DIRECTIVAS ESTILÍSTICAS: {original_style_directives}\n\n"
-        f"INSTRUCCIONES DE EDICIÓN / ELEMENTOS A SUMAR:\n{edit_instructions}\n\n"
+        f"INSTRUCCIONES DE EDICIÓN / ELEMENTOS A SUMAR DEL AUTOR:\n{edit_instructions}\n\n"
         f"Se adjunta a continuación:\n"
         f"- Primera imagen: El cartel generado actualmente (Versión previa).\n"
         f"- Siguientes imágenes: Las {len(reference_images_list)} fotos de referencia proporcionadas por el autor."
@@ -299,14 +292,14 @@ def save_poster_to_project(
     project_id: str,
     iteration: int,
     image_bytes: bytes,
-    style_name: str,
     original_prompt: str,
     ai_prompt: str,
     revised_prompt: str,
     size: str,
     quality: str = "high",
     notes: str = "",
-    image_model: str = "chatgpt-image-latest"
+    image_model: str = "chatgpt-image-latest",
+    style_name: str = "Definido por el autor"
 ) -> Dict[str, Any]:
     """
     Guarda el cartel generado y su metadata en disco en la carpeta de proyectos.
