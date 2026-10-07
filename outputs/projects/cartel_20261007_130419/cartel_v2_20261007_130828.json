@@ -1,0 +1,15 @@
+{
+  "project_id": "cartel_20261007_130419",
+  "iteration": 2,
+  "timestamp": "20261007_130828",
+  "date_readable": "2026-10-07 13:08:28",
+  "style_name": "Retro Vintage (Años 70 & 80)",
+  "model_used": "gpt-image-2",
+  "user_prompt": "Quita todo el texto",
+  "ai_engineered_prompt": "Create a vintage retro poster inspired by the 1970s-1980s aesthetic. Feature two medieval kings standing back-to-back, one in a red robe with a crown, the other in a blue robe with a headband and scepter. Include a grand castle in the background and armies on horseback on both sides, all set under a warm, faded color palette with mustard yellow, burnt orange, and avocado green. Apply a film grain and subtle halftone print texture, with a distressed paper finish. Remove all text, focusing purely on the visual elements.",
+  "image_revised_prompt": "Create a vintage retro poster inspired by the 1970s-1980s aesthetic. Feature two medieval kings standing back-to-back, one in a red robe with a crown, the other in a blue robe with a headband and scepter. Include a grand castle in the background and armies on horseback on both sides, all set under a warm, faded color palette with mustard yellow, burnt orange, and avocado green. Apply a film grain and subtle halftone print texture, with a distressed paper finish. Remove all text, focusing purely on the visual elements.",
+  "size": "1024x1536",
+  "quality": "high",
+  "notes": "Iteración v2 con gpt-image-2 y 0 ref.",
+  "image_file": "cartel_v2_20261007_130828.png"
+}

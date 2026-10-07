@@ -1,0 +1,15 @@
+{
+  "project_id": "cartel_20261007_130419",
+  "iteration": 1,
+  "timestamp": "20261007_130619",
+  "date_readable": "2026-10-07 13:06:19",
+  "style_name": "Retro Vintage (Años 70 & 80)",
+  "model_used": "gpt-image-2",
+  "user_prompt": "Haz un cartel de película siguiendo el estilo de la película de los Goonies en colores sepia donde los gigantes de la foto estén espalda contra espalda mirando de perfil cada uno hacia el borde del cartel",
+  "ai_engineered_prompt": "Retro vintage 1970s-1980s movie poster featuring two giant figures standing back-to-back, each looking towards the edges of the poster. One wears a robe with a red cape and a jeweled crown, while the other has a blue cape and holds a scepter. Use a warm, faded color palette with mustard yellow, burnt orange, avocado green, and sepia tones. Incorporate film grain, subtle halftone print texture, and a distressed paper finish for an authentic nostalgic look. Title in bold retro groove typography at the top, capturing the essence of analog advertising from the era.",
+  "image_revised_prompt": "Retro vintage 1970s-1980s movie poster featuring two giant figures standing back-to-back, each looking towards the edges of the poster. One wears a robe with a red cape and a jeweled crown, while the other has a blue cape and holds a scepter. Use a warm, faded color palette with mustard yellow, burnt orange, avocado green, and sepia tones. Incorporate film grain, subtle halftone print texture, and a distressed paper finish for an authentic nostalgic look. Title in bold retro groove typography at the top, capturing the essence of analog advertising from the era.",
+  "size": "1024x1536",
+  "quality": "high",
+  "notes": "Generación inicial con gpt-image-2",
+  "image_file": "cartel_v1_20261007_130619.png"
+}
